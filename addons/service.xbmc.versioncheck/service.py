@@ -20,6 +20,8 @@
 
 import os
 import platform
+import urllib
+import re
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -159,6 +161,8 @@ def _versioncheck():
 def _versionchecklinux(package):
     if (platform.dist()[0] == "Ubuntu" or platform.dist()[0] == "Debian"):
         oldversion, msg = _versioncheckapt(package)
+    elif platform.dist(supported_dists=('boxeebox'))[0].lower() == "boxeebox":
+        oldversion, msg = _versioncheckboxee(package)
     else:
         log("Unsupported platform %s" %platform.dist()[0])
         sys.exit(0)
@@ -208,6 +212,32 @@ def _versioncheckapt(package):
            log("No installed package found, probably manual install")
            sys.exit(0)
 
+    return oldversion, msg
+
+def _versioncheckboxee(package):
+    oldversion = False
+    msg = ''
+
+    # get localversion (date, hash)
+    local_version = list(re.findall("(\d{8})-(.+)$", xbmc.getInfoLabel("System.BuildVersion"))[0])
+
+    # get remoteversion (date, hash)
+    stream = urllib.urlopen("http://devil-strike.com/xbmc_boxeebox/changelog.txt")
+    changelog = stream.read()
+    stream.close()
+
+    for line in changelog.split('\n'):
+        line = line.lower().strip()
+        if line.startswith('changelog:'):
+            remote_version = list(re.findall("(\d{4}\.\d{2}\.\d{2}).*_(.{7,})$", line[11:].strip())[0])
+            break
+
+    remote_version[0] = remote_version[0].replace('.', '')
+    if remote_version[0] > local_version[0] or remote_version[1] != local_version[1]:
+        oldversion = True
+        msg = "Check http://devil-strike.com for updated version."
+
+    log("Boxee recognized: %s vs %s" %(local_version, remote_version))
     return oldversion, msg
 
 def _apttransstarted():
