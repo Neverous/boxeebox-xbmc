@@ -1252,6 +1252,7 @@ int CGUIInfoManager::TranslateSingleString(const CStdString &strCondition, bool 
         {
           CStdString device = info[3].name;
           if (device == "raspberrypi") return SYSTEM_PLATFORM_LINUX_RASPBERRY_PI;
+          if (device == "boxee") return SYSTEM_PLATFORM_LINUX_BOXEE;
         }
         else return SYSTEM_PLATFORM_LINUX;
       }
@@ -2287,6 +2288,12 @@ bool CGUIInfoManager::GetBool(int condition1, int contextWindow, const CGUIListI
 #endif
   else if (condition == SYSTEM_PLATFORM_LINUX_RASPBERRY_PI)
 #if defined(TARGET_RASPBERRY_PI)
+    bReturn = true;
+#else
+    bReturn = false;
+#endif
+  else if (condition == SYSTEM_PLATFORM_LINUX_BOXEE)
+#if defined(TARGET_BOXEE)
     bReturn = true;
 #else
     bReturn = false;
